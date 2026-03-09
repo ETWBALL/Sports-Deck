@@ -1,0 +1,26 @@
+@baseUrl = http://localhost:3000
+@token = YOUR_JWT_TOKEN
+@userId = USER_ID
+
+############################################################
+# USER PROFILE
+############################################################
+
+### Get user profile
+GET {{baseUrl}}/api/users/{{userId}}
+
+
+############################################################
+# GET USER FOLLOWERS (PUBLIC PROFILE)
+############################################################
+
+### View user's followers
+GET {{baseUrl}}/api/users/{{userId}}/followers
+
+
+############################################################
+# GET USER FOLLOWING (PUBLIC PROFILE)
+############################################################
+
+### View user's following
+GET {{baseUrl}}/api/users/{{userId}}/following

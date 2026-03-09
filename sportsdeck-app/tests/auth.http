@@ -1,0 +1,24 @@
+@baseUrl = http://localhost:3000
+
+############################################################
+# LOGIN
+############################################################
+
+### Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "etwcodes@gmail.com",
+  "password": "password"
+}
+
+### Signup 
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "etwcodes@gmail.com",
+  "password": "password",
+  "username": "etw"
+}

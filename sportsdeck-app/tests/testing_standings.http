@@ -1,0 +1,13 @@
+GET http://localhost:3000/api/standings
+
+
+###
+GET http://localhost:3000/api/standings?type=HOME
+
+
+###
+GET http://localhost:3000/api/standings?type=AWAY
+
+
+###
+GET http://localhost:3000/api/standings?season=2025

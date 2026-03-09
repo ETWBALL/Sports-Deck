@@ -1,0 +1,8 @@
+GET http://localhost:3000/api/matches?dateFrom=2026-01-01&dateTo=2026-01-31
+
+
+###
+GET http://localhost:3000/api/matches?matchday=1
+
+###
+GET http://localhost:3000/api/matches?matchday=30

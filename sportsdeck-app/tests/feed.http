@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:3000
+@token = YOUR_JWT_TOKEN
+@feedEntryId = FEED_ENTRY_ID
+
+############################################################
+# GET PERSONALIZED FEED
+############################################################
+
+### Get feed
+GET {{baseUrl}}/api/feed
+Authorization: Bearer {{token}}
+
+
+############################################################
+# FEED WITH LIMIT
+############################################################
+
+### Feed limit 10
+GET {{baseUrl}}/api/feed?limit=10
+Authorization: Bearer {{token}}
+
+
+############################################################
+# MARK FEED ENTRY READ
+############################################################
+
+### Mark feed item as read
+PATCH {{baseUrl}}/api/feed/{{feedEntryId}}/read
+Authorization: Bearer {{token}}

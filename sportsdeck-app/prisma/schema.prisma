@@ -1,0 +1,400 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../src/generated/prisma"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// SPORTS DOMAIN
+// =====================================================
+
+model Team {
+  id         String   @id @default(cuid())
+  externalId String   @unique
+  name       String   @unique
+  shortName  String
+  logoUrl    String
+  venue      String
+  cachedAt   DateTime
+
+  homeMatches Match[]    @relation("HomeTeam")
+  awayMatches Match[]    @relation("AwayTeam")
+  standings   Standing[]
+  threads     Thread[]
+  fans        User[]
+}
+
+model Match {
+  id         String   @id @default(cuid())
+  externalId String   @unique
+  homeTeamId String
+  awayTeamId String
+  venue      String
+  status     String
+  homeScore  Int?
+  awayScore  Int?
+  matchDate  DateTime
+  cachedAt   DateTime
+  matchday   Int
+  season     String
+  stage      String
+
+  @@index([matchDate])
+  @@index([matchday, season])
+  homeTeam  Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam  Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  thread    Thread?
+}
+
+model Standing {
+  id           String   @id @default(cuid())
+  teamId       String
+  externalTeamId   String
+  season       String
+  position     Int
+  played       Int
+  won          Int
+  drawn        Int
+  lost         Int
+  goalsFor     Int
+  goalsAgainst Int
+  points       Int
+  cachedAt     DateTime
+  type         String
+
+  team Team @relation(fields: [teamId], references: [id])
+  @@unique([externalTeamId, season, type])
+}
+
+// =====================================================
+// USER DOMAIN
+// =====================================================
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  username       String?   @unique
+  passwordHash   String?
+  role           String   @default("user")
+  avatarUrl      String?
+  favoriteTeamId String?  
+  isBanned       Boolean  @default(false)
+  authProvider   String?
+  providerUserId String?
+  createdAt      DateTime @default(now())
+  refresh_token  String?
+
+  favoriteTeam Team? @relation(fields: [favoriteTeamId], references: [id])
+
+  threads      Thread[]
+  posts        Post[]
+  replies      Reply[]
+  votes        Vote[]
+  reports      Report[]
+  bans         Ban[]        @relation("BannedUser")
+  bansIssued   Ban[]        @relation("BanningAdmin")
+  appeals      Appeal[]     @relation("Appealer")
+  appealsReviewed Appeal[]  @relation("AppealReviewer")
+  following    Follow[]     @relation("Follower")
+  followers    Follow[]     @relation("Following")
+  activities   Activity[]
+  feedEntries  FeedEntry[]
+  feedEvents   FeedEvent[]
+  adminActions AdminAction[]
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Follower",  fields: [followerId],  references: [id])
+  following User @relation("Following", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
+// =====================================================
+// SOCIAL DOMAIN
+// =====================================================
+
+model Thread {
+  id            String    @id @default(cuid())
+  title         String
+  authorId      String
+  teamId        String?
+  matchId       String?   @unique
+  isMatchThread Boolean   @default(false)
+  isLocked      Boolean   @default(false)
+  isHidden      Boolean   @default(false)
+  opensAt       DateTime?
+  lockedAt      DateTime?
+  createdAt     DateTime  @default(now())
+
+  author   User    @relation(fields: [authorId], references: [id])
+  team     Team?   @relation(fields: [teamId],   references: [id])
+  match    Match?  @relation(fields: [matchId],  references: [id])
+
+  posts    Post[]
+  polls    Poll[]
+  tags     ThreadTag[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  threadId  String
+  authorId  String
+  content   String
+  isEdited  Boolean  @default(false)
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread   Thread       @relation(fields: [threadId], references: [id])
+  author   User         @relation(fields: [authorId], references: [id])
+  replies  Reply[]
+  versions PostVersion[]
+}
+
+model Reply {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String
+  isEdited  Boolean  @default(false)
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post     Post           @relation(fields: [postId],   references: [id])
+  author   User           @relation(fields: [authorId], references: [id])
+  versions ReplyVersion[]
+}
+
+model PostVersion {
+  id         String   @id @default(cuid())
+  postId     String
+  oldContent String
+  editedAt   DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+}
+
+model ReplyVersion {
+  id         String   @id @default(cuid())
+  replyId    String
+  oldContent String
+  editedAt   DateTime @default(now())
+
+  reply Reply @relation(fields: [replyId], references: [id])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  threads ThreadTag[]
+}
+
+model ThreadTag {
+  threadId String
+  tagId    String
+
+  thread Thread @relation(fields: [threadId], references: [id])
+  tag    Tag    @relation(fields: [tagId],    references: [id])
+
+  @@id([threadId, tagId])
+}
+
+// =====================================================
+// POLLS
+// =====================================================
+
+model Poll {
+  id        String   @id @default(cuid())
+  threadId  String
+  question  String
+  deadline  DateTime
+  isClosed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  thread  Thread       @relation(fields: [threadId], references: [id])
+  options PollOption[]
+}
+
+model PollOption {
+  id         String @id @default(cuid())
+  pollId     String
+  optionText String
+
+  poll  Poll   @relation(fields: [pollId], references: [id])
+  votes Vote[]
+}
+
+model Vote {
+  id           String   @id @default(cuid())
+  pollOptionId String
+  userId       String
+  createdAt    DateTime @default(now())
+
+  pollOption PollOption @relation(fields: [pollOptionId], references: [id])
+  user       User       @relation(fields: [userId],       references: [id])
+
+  @@unique([pollOptionId, userId])
+}
+
+// =====================================================
+// MODERATION DOMAIN
+// =====================================================
+
+model ReportedItem {
+  id              String    @id @default(cuid())
+  contentType     String
+  contentId       String
+  reportCount     Int       @default(0)
+  status          String    @default("pending")
+  aiScore         Float?
+  aiLabel         String?
+  aiExplanation   String?
+  aiModel         String?
+  aiUpdatedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastReportedAt  DateTime?
+
+  reports      Report[]
+  adminActions AdminAction[]
+  bans         Ban[]
+
+  @@unique([contentType, contentId])
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  reporterId     String
+  reportedItemId String
+  reason         String
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+
+  reporter     User         @relation(fields: [reporterId],     references: [id])
+  reportedItem ReportedItem @relation(fields: [reportedItemId], references: [id])
+
+  adminActions AdminAction[]
+  bans         Ban[]
+}
+
+model AdminAction {
+  id             String   @id @default(cuid())
+  adminId        String
+  reportedItemId String
+  reportId       String?
+  actionType     String
+  targetUserId   String?
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  admin        User         @relation(fields: [adminId],        references: [id])
+  reportedItem ReportedItem @relation(fields: [reportedItemId], references: [id])
+  report       Report?      @relation(fields: [reportId],       references: [id])
+}
+
+model Ban {
+  id               String    @id @default(cuid())
+  userId           String
+  bannedByAdminId  String
+  reportedItemId   String?
+  reportId         String?
+  reason           String
+  status           String    @default("active")
+  createdAt        DateTime  @default(now())
+  liftedAt         DateTime?
+
+  user           User          @relation("BannedUser", fields: [userId],          references: [id])
+  bannedByAdmin  User          @relation("BanningAdmin", fields: [bannedByAdminId], references: [id])
+  reportedItem   ReportedItem? @relation(fields: [reportedItemId], references: [id])
+  report         Report?       @relation(fields: [reportId],       references: [id])
+  appeals        Appeal[]
+}
+
+model Appeal {
+  id                String    @id @default(cuid())
+  appealerId        String
+  banId             String
+  message           String
+  status            String    @default("pending")
+  reviewedByAdminId String?
+  decisionNote      String?
+  createdAt         DateTime  @default(now())
+  reviewedAt        DateTime?
+
+  appealer        User  @relation("Appealer",       fields: [appealerId],        references: [id])
+  ban             Ban   @relation(fields: [banId],                               references: [id])
+  reviewedByAdmin User? @relation("AppealReviewer", fields: [reviewedByAdminId], references: [id])
+}
+
+// =====================================================
+// AI DOMAIN
+// =====================================================
+
+model DailyDigest {
+  id          String   @id @default(cuid())
+  date        String   @unique          // "YYYY-MM-DD" — one digest per day
+  content     String                     // AI-generated markdown summary
+  generatedAt DateTime @default(now())
+}
+
+// =====================================================
+// FEED DOMAIN
+// =====================================================
+
+model Activity {
+  id         String   @id @default(cuid())
+  actorId    String
+  type       String
+  entityType String
+  entityId   String
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id])
+}
+
+model FeedEvent {
+  id             String   @id @default(cuid())
+  actorId        String
+  eventType      String
+  groupKey       String
+  entityType     String
+  entityId       String
+  aggregateCount Int      @default(1)
+  createdAt      DateTime @default(now())
+  lastUpdatedAt  DateTime @updatedAt
+
+  actor       User        @relation(fields: [actorId], references: [id])
+  feedEntries FeedEntry[]
+}
+
+model FeedEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  feedEventId String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId],      references: [id])
+  feedEvent FeedEvent @relation(fields: [feedEventId], references: [id])
+}

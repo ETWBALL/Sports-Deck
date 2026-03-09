@@ -1,0 +1,17 @@
+@baseUrl = http://localhost:3000
+@userId = USER_ID
+
+############################################################
+# USER ACTIVITY
+############################################################
+
+### Activity last 7 days
+GET {{baseUrl}}/api/users/{{userId}}/activity?range=7d
+
+
+### Activity last 30 days
+GET {{baseUrl}}/api/users/{{userId}}/activity?range=30d
+
+
+### Activity last 90 days
+GET {{baseUrl}}/api/users/{{userId}}/activity?range=90d

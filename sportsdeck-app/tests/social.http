@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:3000
+@token = YOUR_JWT_TOKEN
+@followerId = FOLLOWER_ID
+
+############################################################
+# GET USERS I AM FOLLOWING
+############################################################
+
+### Get following list
+GET {{baseUrl}}/api/users/me/following
+Authorization: Bearer {{token}}
+
+
+############################################################
+# GET MY FOLLOWERS
+############################################################
+
+### Get followers list
+GET {{baseUrl}}/api/users/me/followers
+Authorization: Bearer {{token}}
+
+
+############################################################
+# REMOVE FOLLOWER
+############################################################
+
+### Remove follower
+DELETE {{baseUrl}}/api/users/me/followers/{{followerId}}
+Authorization: Bearer {{token}}

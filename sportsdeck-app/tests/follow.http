@@ -1,0 +1,20 @@
+@baseUrl = http://localhost:3000
+@token = YOUR_JWT_TOKEN
+@targetUserId = TARGET_USER_ID
+
+############################################################
+# FOLLOW USER
+############################################################
+
+### Follow user
+POST {{baseUrl}}/api/follow/{{targetUserId}}
+Authorization: Bearer {{token}}
+
+
+############################################################
+# UNFOLLOW USER
+############################################################
+
+### Unfollow user
+DELETE {{baseUrl}}/api/follow/{{targetUserId}}
+Authorization: Bearer {{token}}

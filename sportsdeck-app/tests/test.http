@@ -1,0 +1,37 @@
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json 
+
+{
+    "username": "John Cena",
+    "password": "YOU CANT SEE ME",
+    "email": "him@bruh.com"
+}
+
+###
+
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json 
+
+{
+    "email": "him@bruh.com",
+    "potential_password": "YOU CANT SEE ME"
+}
+
+###
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json 
+
+{
+    "username": "etwbball",
+    "password": "CSC309 is fun",
+    "email": "utm@utm.utm"
+}
+
+###
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json 
+
+{
+    "potential_password": "CSC309 is fun",
+    "email": "utm@utm.utm"
+}
